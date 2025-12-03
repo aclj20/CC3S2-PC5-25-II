@@ -1,19 +1,61 @@
 """Router para operaciones CRUD de flags."""
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
 from app.models.flag import Flag
-from app.schemas.flag import FlagCreate, FlagUpdate, FlagResponse, FlagListResponse
+from app.schemas.flag import FlagCreate, FlagUpdate, FlagResponse, FlagListResponse, EvaluateResponse
 from app.validators.flag_validator import FlagValidator
 from app.exceptions import FlagNotFoundException
+from app.services.evaluation_service import EvaluationService
 
 router = APIRouter(
     prefix="/api/flags",
     tags=["flags"]
 )
+
+
+@router.get("/evaluate", response_model=EvaluateResponse, status_code=status.HTTP_200_OK)
+def evaluate_flag(
+    user_id: str = Query(..., description="ID del usuario para evaluar la flag"),
+    flag: str = Query(..., description="Nombre de la flag a evaluar"),
+    db: Session = Depends(get_db)
+):
+    """
+    Evalúa si un usuario debe recibir una feature flag.
+    
+    Implementa reglas de segmentación:
+    - Por usuario: usuarios en allowed_users siempre reciben la feature
+    - Por rollout: distribución basada en porcentaje de rollout_percentage
+    - Por estrategia predeterminada: basada en el estado enabled de la flag
+    
+    Args:
+        user_id: ID del usuario a evaluar
+        flag: Nombre de la flag a evaluar
+        db: Sesión de base de datos
+        
+    Returns:
+        EvaluateResponse: Resultado de la evaluación con razón
+        
+    Raises:
+        FlagNotFoundException: Si la flag no existe
+    """
+    # Buscar la flag en la base de datos
+    db_flag = db.query(Flag).filter(Flag.name == flag.lower()).first()
+    
+    if not db_flag:
+        raise FlagNotFoundException(flag)
+    
+    # Evaluar usando el servicio de evaluación
+    enabled, reason = EvaluationService.evaluate_flag(db_flag, user_id)
+    
+    return EvaluateResponse(
+        flag_name=db_flag.name,
+        enabled=enabled,
+        reason=reason
+    )
 
 
 @router.get("", response_model=FlagListResponse, status_code=status.HTTP_200_OK)
@@ -134,3 +176,4 @@ def update_flag(flag_name: str, flag_data: FlagUpdate, db: Session = Depends(get
     db.refresh(db_flag)
     
     return db_flag
+
