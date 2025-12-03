@@ -9,6 +9,10 @@ from app.models.flag import Flag
 from app.schemas.flag import FlagCreate, FlagUpdate, FlagResponse, FlagListResponse
 from app.validators.flag_validator import FlagValidator
 from app.exceptions import FlagNotFoundException
+import os
+
+# Obtener el entorno actual
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 router = APIRouter(
     prefix="/api/flags",
@@ -27,7 +31,9 @@ def list_flags(db: Session = Depends(get_db)):
     flags = db.query(Flag).all()
     return FlagListResponse(
         flags=flags,
-        total=len(flags)
+        total=len(flags),
+        # /flags refleja el entorno
+        environment=ENVIRONMENT,
     )
 
 

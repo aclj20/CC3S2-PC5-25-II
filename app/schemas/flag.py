@@ -54,3 +54,5 @@ class FlagListResponse(BaseModel):
 
     flags: List[FlagResponse] = Field(..., description="Lista de banderas")
     total: int = Field(..., description="Número total de banderas")
+    # /flags refleja el entorno
+    environment: str = Field(..., description="Entorno actual")
