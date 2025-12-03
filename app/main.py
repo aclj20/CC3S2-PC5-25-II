@@ -4,6 +4,10 @@ from fastapi import FastAPI
 from app.database import init_db
 from app.routers import flags_router
 from app.middleware.error_handler import add_exception_handlers
+import os
+
+# Obtener el entorno actual
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 # Crear FastAPI app
 app = FastAPI(
@@ -37,7 +41,9 @@ def health():
     return {
         "status": "healthy",
         "service": "feature-flag-hub",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        # /health refleja el entorno
+        "environment": ENVIRONMENT,
     }
 
 if __name__ == "__main__":
