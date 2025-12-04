@@ -9,7 +9,7 @@ from app.middleware.error_handler import add_exception_handlers
 app = FastAPI(
     title="Feature Flag Hub",
     description="Sistema de gestión de feature flags con despliegue controlado",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Inicializar base de datos
@@ -25,21 +25,16 @@ app.include_router(flags_router)
 @app.get("/")
 def root():
     """Root endpoint."""
-    return {
-        "message": "Feature Flag Hub API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    return {"message": "Feature Flag Hub API", "version": "1.0.0", "docs": "/docs"}
+
 
 @app.get("/health")
 def health():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "service": "feature-flag-hub",
-        "version": "1.0.0"
-    }
+    return {"status": "healthy", "service": "feature-flag-hub", "version": "1.0.0"}
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
