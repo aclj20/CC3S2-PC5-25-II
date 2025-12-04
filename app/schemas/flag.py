@@ -54,3 +54,14 @@ class FlagListResponse(BaseModel):
 
     flags: List[FlagResponse] = Field(..., description="Lista de banderas")
     total: int = Field(..., description="Número total de banderas")
+
+
+class EvaluateResponse(BaseModel):
+    """Esquema para la respuesta de evaluación de flag."""
+    
+    flag_name: str = Field(..., description="Nombre de la flag evaluada")
+    enabled: bool = Field(..., description="Si la flag está habilitada o no para este usuario")
+    reason: str = Field(..., description="Razón por la cual se otorgó o denegó el acceso")
+    
+    class Config:
+        from_attributes = True

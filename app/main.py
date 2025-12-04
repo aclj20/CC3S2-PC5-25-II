@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from app.database import init_db
-from app.routers import flags_router
+from app.routers.flags import router as flags_router
 from app.middleware.error_handler import add_exception_handlers
 
 # Crear FastAPI app
