@@ -32,7 +32,7 @@ jobs:
 
             -   name: Run ruff
                 run: |
-                    ruff .
+                    ruff check .
 
             -   name: Run pytest
                 run: |
