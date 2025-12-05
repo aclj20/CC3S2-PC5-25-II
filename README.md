@@ -134,3 +134,78 @@ featureflags/
 └── README.md
 ```
 
+## Testing y Validación Automática (Sprint 1)
+
+Este proyecto incluye una suite completa de pruebas unitarias y un pipeline de integración continua para garantizar la calidad del código desde el primer sprint.
+
+### **Ejecución de Tests Localmente**
+
+Para correr todos los tests:
+
+```bash
+pytest -vv
+```
+
+Los tests usan una base de datos SQLite aislada (`test_featureflags.db`) configurada mediante `conftest.py`, por lo que no afectan los datos reales del proyecto.
+
+### **Contenido Principal de los Tests**
+
+Los tests cubren:
+
+* **/health**
+
+  * Verifica estado y metadatos del servicio
+
+* **CRUD de flags (`/api/flags`)**
+
+  * Crear, listar, obtener y actualizar flags
+  * Validación de esquemas `FlagResponse` y `FlagListResponse`
+  * Manejo correcto de errores (`FlagNotFoundException → 404`)
+
+* **Evaluación de flags (`/api/flags/evaluate`)**
+
+  * Flag deshabilitada
+  * Usuario en allowlist
+  * Rollout determinístico
+  * Caso default deny
+  * Validación del esquema `EvaluateResponse`
+
+### **Estructura de pruebas**
+
+```
+tests/
+├── conftest.py          # DB de pruebas + TestClient configurado
+├── test_health.py       # Endpoint /health
+├── test_flags_crud.py   # CRUD de flags
+└── test_evaluate.py     # Lógica de segmentación y evaluación
+```
+
+---
+
+## Pipeline CI (Integración Continua)
+
+El proyecto cuenta con un workflow automatizado que corre en cada push y pull request:
+
+**Ruta:**
+`.github/workflows/ci.yml`
+
+### **Validaciones automáticas incluidas:**
+
+* Formato con `black --check .`
+* Análisis estático con `ruff check .`
+* Ejecución completa de la suite de tests con `pytest -vv`
+
+Esto garantiza:
+
+* Código consistentemente formateado
+* Detección temprana de errores
+* Validación continua de endpoints críticos
+* Verificación del comportamiento de la API en cada cambio relevante
+
+Para reproducir localmente lo mismo que hace el CI:
+
+```bash
+black --check .
+ruff check .
+pytest -vv
+```
