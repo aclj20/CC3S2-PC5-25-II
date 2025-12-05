@@ -8,35 +8,54 @@ from datetime import datetime
 class FlagBase(BaseModel):
     """Esquema base para Flag con atributos comunes."""
 
-    name: str = Field(..., min_length=1, max_length=100, description="Nombre único de la bandera")
-    description: Optional[str] = Field(None, max_length=500, description="Descripción de la bandera")
-    enabled: bool = Field(default=True, description="Indica si la bandera está habilitada")
-    rollout_percentage: int = Field(default=0, ge=0, le=100, description="Porcentaje de despliegue (0-100)")
-    allowed_users: List[str] = Field(default_factory=list, description="Lista de IDs de usuarios permitidos")
+    name: str = Field(
+        ..., min_length=1, max_length=100, description="Nombre único de la bandera"
+    )
+    description: Optional[str] = Field(
+        None, max_length=500, description="Descripción de la bandera"
+    )
+    enabled: bool = Field(
+        default=True, description="Indica si la bandera está habilitada"
+    )
+    rollout_percentage: int = Field(
+        default=0, ge=0, le=100, description="Porcentaje de despliegue (0-100)"
+    )
+    allowed_users: List[str] = Field(
+        default_factory=list, description="Lista de IDs de usuarios permitidos"
+    )
 
-    @field_validator('name')
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         """Valida el formato del nombre de la bandera."""
-        if not v.replace('-', '').replace('_', '').isalnum():
-            raise ValueError('El nombre de la bandera solo puede contener caracteres alfanuméricos, guiones y guiones bajos')
-        if ' ' in v:
-            raise ValueError('El nombre de la bandera no puede contener espacios')
+        if not v.replace("-", "").replace("_", "").isalnum():
+            raise ValueError(
+                "El nombre de la bandera solo puede contener caracteres alfanuméricos, guiones y guiones bajos"
+            )
+        if " " in v:
+            raise ValueError("El nombre de la bandera no puede contener espacios")
         return v.lower()  # Normalizar a minúsculas
 
 
 class FlagCreate(FlagBase):
     """Esquema para crear una nueva bandera."""
+
     pass
 
 
 class FlagUpdate(BaseModel):
     """Esquema para actualizar una bandera existente."""
 
-    description: Optional[str] = Field(None, max_length=500, description="Nueva descripción de la bandera")
+    description: Optional[str] = Field(
+        None, max_length=500, description="Nueva descripción de la bandera"
+    )
     enabled: Optional[bool] = Field(None, description="Nuevo estado de habilitación")
-    rollout_percentage: Optional[int] = Field(None, ge=0, le=100, description="Nuevo porcentaje de despliegue (0-100)")
-    allowed_users: Optional[List[str]] = Field(None, description="Nueva lista de IDs de usuarios permitidos")
+    rollout_percentage: Optional[int] = Field(
+        None, ge=0, le=100, description="Nuevo porcentaje de despliegue (0-100)"
+    )
+    allowed_users: Optional[List[str]] = Field(
+        None, description="Nueva lista de IDs de usuarios permitidos"
+    )
 
 
 class FlagResponse(FlagBase):
@@ -58,10 +77,14 @@ class FlagListResponse(BaseModel):
 
 class EvaluateResponse(BaseModel):
     """Esquema para la respuesta de evaluación de flag."""
-    
+
     flag_name: str = Field(..., description="Nombre de la flag evaluada")
-    enabled: bool = Field(..., description="Si la flag está habilitada o no para este usuario")
-    reason: str = Field(..., description="Razón por la cual se otorgó o denegó el acceso")
-    
+    enabled: bool = Field(
+        ..., description="Si la flag está habilitada o no para este usuario"
+    )
+    reason: str = Field(
+        ..., description="Razón por la cual se otorgó o denegó el acceso"
+    )
+
     class Config:
         from_attributes = True
