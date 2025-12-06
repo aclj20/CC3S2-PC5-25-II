@@ -25,7 +25,6 @@ from app.services.evaluation_service import EvaluationService
 router = APIRouter(prefix="/api/flags", tags=["flags"])
 
 
-
 @router.get(
     "/evaluate", response_model=EvaluateResponse, status_code=status.HTTP_200_OK
 )
@@ -81,7 +80,6 @@ def list_flags(db: Session = Depends(get_db)):
         # /flags refleja el entorno
         environment=ENVIRONMENT,
     )
-
 
 
 @router.post("", response_model=FlagResponse, status_code=status.HTTP_201_CREATED)

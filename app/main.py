@@ -43,6 +43,7 @@ def health():
         "environment": ENVIRONMENT,
     }
 
+
 if __name__ == "__main__":
     import uvicorn
 
