@@ -1,5 +1,6 @@
 """Router para operaciones CRUD de flags."""
 
+import os
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
@@ -15,6 +16,9 @@ from app.schemas.flag import (
 from app.validators.flag_validator import FlagValidator
 from app.exceptions import FlagNotFoundException
 from app.services.evaluation_service import EvaluationService
+
+# Obtener el entorno actual
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 router = APIRouter(prefix="/api/flags", tags=["flags"])
 
@@ -67,7 +71,13 @@ def list_flags(db: Session = Depends(get_db)):
         FlagListResponse: Lista de todas las flags con el conteo total
     """
     flags = db.query(Flag).all()
-    return FlagListResponse(flags=flags, total=len(flags))
+
+    return FlagListResponse(
+        flags=flags,
+        total=len(flags),
+        # /flags refleja el entorno
+        environment=ENVIRONMENT,
+    )
 
 
 @router.post("", response_model=FlagResponse, status_code=status.HTTP_201_CREATED)
