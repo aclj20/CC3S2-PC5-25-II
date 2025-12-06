@@ -1,5 +1,6 @@
 """Router para operaciones CRUD de flags."""
 
+import os
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
@@ -14,13 +15,10 @@ from app.schemas.flag import (
 )
 from app.validators.flag_validator import FlagValidator
 from app.exceptions import FlagNotFoundException
-
-import os
+from app.services.evaluation_service import EvaluationService
 
 # Obtener el entorno actual
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
-
-from app.services.evaluation_service import EvaluationService
 
 router = APIRouter(prefix="/api/flags", tags=["flags"])
 
