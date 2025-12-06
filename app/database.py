@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./featureflags.db")
 # Crear engine
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
 )
 
 # Crear la clase SessionLocal
@@ -27,7 +27,7 @@ Base = declarative_base()
 def get_db():
     """
     Dependencia para obtener una sesión de base de datos.
-    
+
     Yields:
         Session: Sesión de SQLAlchemy
     """

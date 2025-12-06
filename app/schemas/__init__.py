@@ -5,7 +5,8 @@ from app.schemas.flag import (
     FlagCreate,
     FlagUpdate,
     FlagResponse,
-    FlagListResponse
+    FlagListResponse,
+    EvaluateResponse,
 )
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "FlagCreate",
     "FlagUpdate",
     "FlagResponse",
-    "FlagListResponse"
+    "FlagListResponse",
+    "EvaluateResponse",
 ]

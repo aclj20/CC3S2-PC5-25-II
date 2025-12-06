@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from app.database import init_db
-from app.routers import flags_router
+from app.routers.flags import router as flags_router
 from app.middleware.error_handler import add_exception_handlers
 import os
 
@@ -13,7 +13,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 app = FastAPI(
     title="Feature Flag Hub",
     description="Sistema de gestión de feature flags con despliegue controlado",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Inicializar base de datos
@@ -29,11 +29,8 @@ app.include_router(flags_router)
 @app.get("/")
 def root():
     """Root endpoint."""
-    return {
-        "message": "Feature Flag Hub API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    return {"message": "Feature Flag Hub API", "version": "1.0.0", "docs": "/docs"}
+
 
 @app.get("/health")
 def health():
@@ -48,4 +45,5 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
