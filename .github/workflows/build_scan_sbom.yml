@@ -1,0 +1,79 @@
+name: Build, Scan and SBOM
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    build_scan_sbom:
+        runs-on: ubuntu-latest
+
+        env:
+            IMAGE_NAME: feature-flag-hub
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Show Docker and OS info
+                run: |
+                    docker version
+                    uname -a
+
+            -   name: Build Docker image
+                run: |
+                    docker build -t ${IMAGE_NAME}:${{ github.sha }} .
+
+            -   name: Create evidence directory
+                run: |
+                    mkdir -p evidence
+
+            -   name: Scan image with Trivy
+                run: |
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${PWD}/evidence:/output \
+                        aquasec/trivy:latest image \
+                        --severity HIGH,CRITICAL \
+                        --format json \
+                        --output /output/trivy-report.json \
+                        ${IMAGE_NAME}:${{ github.sha }}
+
+            -   name: Scan image with Grype
+                run: |
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${PWD}/evidence:/output \
+                        anchore/grype:latest \
+                        ${IMAGE_NAME}:${{ github.sha }} -o json \
+                        > evidence/grype-report.json
+
+            -   name: Generate SBOM with Syft
+                run: |
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${PWD}/evidence:/output \
+                        anchore/syft:latest \
+                        ${IMAGE_NAME}:${{ github.sha }} -o json \
+                        > evidence/sbom.json
+
+            -   name: Save image metadata
+                run: |
+                    {
+                        echo "image_name=${IMAGE_NAME}"
+                        echo "image_tag=${{ github.sha }}"
+                        echo "built_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+                    } > evidence/image-metadata.txt
+
+            -   name: Upload evidence artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: build-scan-sbom-evidence
+                    path: evidence/
+                    include-hidden-files: true
+
