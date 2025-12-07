@@ -38,6 +38,10 @@ wheels/
 # Environment
 .env
 .env.local
+.env.dev
+.env.staging
+.env.*
+
 
 # OS
 .DS_Store
