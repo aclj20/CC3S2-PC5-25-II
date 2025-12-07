@@ -11,9 +11,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
       - featureflags_dev_data:/app/data
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

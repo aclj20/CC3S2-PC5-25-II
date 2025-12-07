@@ -4,7 +4,7 @@ services:
   feature-flags-staging:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.staging
     container_name: featureflags-staging
     env_file:
       - .env.staging

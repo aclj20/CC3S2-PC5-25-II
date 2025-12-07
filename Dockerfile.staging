@@ -1,4 +1,4 @@
-# Imagen base slim 
+# Imagen base slim - Staging (con appuser para mayor seguridad)
 FROM python:3.11-slim
 
 # Variables generales 
@@ -13,6 +13,9 @@ RUN apt-get update && \
 # Directorio de trabajo
 WORKDIR /app
 
+# Crear usuario no-root 
+RUN useradd -m appuser
+
 # Copiar dependencias primero
 COPY requirements.txt .
 
@@ -22,6 +25,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar la aplicación
 COPY . .
 
+# Asignar permisos al usuario no-root
+RUN chown -R appuser:appuser /app
+
+# Cambiar a usuario no-root 
+USER appuser
+
 # Exponer puerto FastAPI
 EXPOSE 8000
 
@@ -29,6 +38,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD \
     curl -f http://127.0.0.1:8000/health || exit 1
 
-# Iniciar FastAPI con uvicorn
+# Iniciar FastAPI con uvicorn (sin --reload)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
