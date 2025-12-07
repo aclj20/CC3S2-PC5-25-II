@@ -20,6 +20,41 @@ La API estará disponible en: `http://localhost:8000`
 
 Documentación interactiva: `http://localhost:8000/docs`
 
+## Ejecutar con Docker Compose
+
+### Entorno de desarrollo (hot reload)
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
+- Usa `.env.dev`
+- Monta el código local (`./`) para recarga en caliente
+- Base de datos en `./data/featureflags_dev.db`
+
+### Entorno de staging (producción-like)
+```bash
+docker-compose -f docker-compose.staging.yml up --build
+```
+- Usa `.env.staging`
+- Sin montajes de código (imagen inmutable)
+- Base de datos en `./data/featureflags_staging.db`
+
+### Health checks por entorno
+```bash
+curl http://localhost:8000/health  # dev
+curl http://localhost:8001/health  # staging
+```
+Respuesta esperada (ejemplo dev):
+```json
+{
+  "status": "healthy",
+  "service": "feature-flag-hub",
+  "version": "1.0.0",
+  "environment": "dev",
+  "strategy": "permissive",
+  "log_level": "DEBUG"
+}
+```
+
 ## Endpoints Disponibles
 
 ### Flags
