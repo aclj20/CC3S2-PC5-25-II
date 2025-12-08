@@ -20,6 +20,60 @@ La API estará disponible en: `http://localhost:8000`
 
 Documentación interactiva: `http://localhost:8000/docs`
 
+## Ejecutar con Docker Compose (Sprint 2)
+
+### Setup Inicial
+
+Generar archivos de configuración por entorno:
+```bash
+./setup-env.sh
+```
+
+Esto crea:
+- `.env.dev` - Configuración para desarrollo
+- `.env.staging` - Configuración para staging
+- `./data/` - Directorio para bases de datos
+
+### Entorno de desarrollo
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
+- Usa `.env.dev` (ENVIRONMENT=dev, LOG_LEVEL=DEBUG)
+- Ejecuta en puerto 8000
+- Base de datos: `./data/featureflags_dev.db`
+
+### Entorno de staging (producción-like)
+```bash
+docker-compose -f docker-compose.staging.yml up --build
+```
+- Usa `.env.staging` (ENVIRONMENT=staging, LOG_LEVEL=INFO)
+- Ejecuta en puerto 8001
+- Base de datos: `./data/featureflags_staging.db`
+- Imagen endurecida con usuario no-root
+
+### Health checks
+```bash
+curl http://localhost:8000/health  # dev
+curl http://localhost:8001/health  # staging
+```
+
+Respuesta esperada:
+```json
+{
+  "status": "healthy",
+  "service": "feature-flag-hub",
+  "version": "1.0.0",
+  "environment": "dev",
+  "strategy": "permissive",
+  "log_level": "DEBUG"
+}
+  "version": "1.0.0",
+  "environment": "dev",
+  "strategy": "permissive",
+  "log_level": "DEBUG"
+}
+```
+
 ## Endpoints Disponibles
 
 ### Flags

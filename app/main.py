@@ -8,6 +8,8 @@ import os
 
 # Obtener el entorno actual
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
+DEFAULT_FLAG_STRATEGY = os.getenv("DEFAULT_FLAG_STRATEGY", "permissive")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # Crear FastAPI app
 app = FastAPI(
@@ -41,6 +43,8 @@ def health():
         "version": "1.0.0",
         # /health refleja el entorno
         "environment": ENVIRONMENT,
+        "strategy": DEFAULT_FLAG_STRATEGY,
+        "log_level": LOG_LEVEL,
     }
 
 
