@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  feature-flags-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    container_name: featureflags-staging
+    env_file:
+      - .env.staging
+    ports:
+      - "8001:8000"
+    volumes:
+      - featureflags_staging_data:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    networks:
+      - featureflags-staging-net
+
+volumes:
+  featureflags_staging_data:
+    driver: local
+
+networks:
+  featureflags-staging-net:
+    driver: bridge

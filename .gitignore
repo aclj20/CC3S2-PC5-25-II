@@ -38,6 +38,14 @@ wheels/
 # Environment
 .env
 .env.local
+.env.dev
+.env.staging
+.env.*
+
+# Local data
+data/
+featureflags_dev_data/
+featureflags_staging_data/
 
 # OS
 .DS_Store

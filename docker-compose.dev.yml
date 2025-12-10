@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  feature-flags-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: featureflags-dev
+    env_file:
+      - .env.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - featureflags_dev_data:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 3s
+    networks:
+      - featureflags-dev-net
+
+volumes:
+  featureflags_dev_data:
+    driver: local
+
+networks:
+  featureflags-dev-net:
+    driver: bridge
