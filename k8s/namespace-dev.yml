@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: featureflags-dev
-  labels:
-    name: featureflags-dev
-    environment: dev
-    managed-by: feature-flags-team
