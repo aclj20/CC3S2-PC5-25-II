@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: featureflags-config-dev
+  namespace: featureflags-dev
+data:
+  ENVIRONMENT: "dev"
+  DEFAULT_FLAG_STRATEGY: "permissive"
+  LOG_LEVEL: "DEBUG"
+  API_PORT: "8000"
+  DATABASE_URL: "sqlite:///./data/featureflags_dev.db"
