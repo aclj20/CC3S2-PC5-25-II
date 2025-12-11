@@ -408,3 +408,52 @@ Los Services exponen los Pods mediante NodePort:
 |---------|---------|----------------|----------|
 | Dev | `featureflags-service-dev` | 8000 | 30000 |
 | Staging | `featureflags-service-staging` | 8001 | 30001 |
+
+
+## **Automatización de Despliegue en Kubernetes**
+
+Incluye un pipeline de despliegue automatizado para aplicar los manifiestos de Kubernetes por entorno utilizando `kubectl` desde GitHub Actions.
+
+### **Workflow: `.github/workflows/deploy_env.yml`**
+
+El pipeline define dos jobs:
+
+#### **1. `deploy_dev` — Despliegue automático**
+
+* Se ejecuta en cada **push a `main` o `develop`**.
+* Aplica los manifests del entorno de desarrollo:
+
+  ```
+  k8s/namespace-dev.yml
+  k8s/configmap-dev.yml
+  k8s/deployment-dev.yml
+  k8s/service-dev.yml
+  ```
+* Prepara la estructura completa del entorno `featureflags-dev`.
+
+#### **2. `deploy_staging` — Despliegue con aprobación**
+
+* Requiere aprobación manual en el **Environment `staging`** antes de ejecutarse.
+* Aplica los manifests del entorno de staging:
+
+  ```
+  k8s/namespace-staging.yml
+  k8s/configmap-staging.yml
+  k8s/deployment-staging.yml
+  k8s/service-staging.yml
+  ```
+* Simula un control de cambios seguro y una promoción manual entre entornos.
+
+### **Requisitos**
+
+* El pipeline está preparado para usar un secreto `KUBE_CONFIG` que contenga la configuración del cluster Kubernetes.
+* Si no se configura un cluster real, los comandos `kubectl apply` fallarán, pero la estructura del workflow sigue siendo válida y completa para fines del proyecto.
+
+### **Evidencias**
+
+El workflow genera archivos de evidencia con los comandos y resultados de los despliegues:
+
+```
+.evidence/deploy-dev.log
+.evidence/deploy-staging.log
+```

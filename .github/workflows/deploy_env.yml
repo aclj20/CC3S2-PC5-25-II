@@ -1,0 +1,98 @@
+name: Deploy Environments
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+    workflow_dispatch:
+
+jobs:
+    deploy_dev:
+        runs-on: ubuntu-latest
+
+        env:
+            KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Configure kubectl
+                run: |
+                    mkdir -p ~/.kube
+                    echo "${KUBE_CONFIG}" > ~/.kube/config
+                    chmod 600 ~/.kube/config
+                    kubectl config get-contexts || true
+
+            -   name: Apply Kubernetes manifests (dev)
+                run: |
+                    mkdir -p evidence
+                    set -o pipefail
+                    echo "=== Deploy Dev ===" | tee evidence/deploy-dev.log
+                    date -u | tee -a evidence/deploy-dev.log
+
+                    echo "--- kubectl apply k8s/namespace-dev.yml ---" | tee -a evidence/deploy-dev.log
+                    kubectl apply -f k8s/namespace-dev.yml 2>&1 | tee -a evidence/deploy-dev.log
+
+                    echo "--- kubectl apply k8s/configmap-dev.yml ---" | tee -a evidence/deploy-dev.log
+                    kubectl apply -f k8s/configmap-dev.yml 2>&1 | tee -a evidence/deploy-dev.log
+
+                    echo "--- kubectl apply k8s/deployment-dev.yml ---" | tee -a evidence/deploy-dev.log
+                    kubectl apply -f k8s/deployment-dev.yml 2>&1 | tee -a evidence/deploy-dev.log
+
+                    echo "--- kubectl apply k8s/service-dev.yml ---" | tee -a evidence/deploy-dev.log
+                    kubectl apply -f k8s/service-dev.yml 2>&1 | tee -a evidence/deploy-dev.log
+
+            -   name: Upload deployment evidence (dev)
+                if: always()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: deploy-dev-evidence
+                    path: evidence/deploy-dev.log
+
+    deploy_staging:
+        runs-on: ubuntu-latest
+        needs: deploy_dev
+        environment:
+            name: staging
+
+        env:
+            KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Configure kubectl
+                run: |
+                    mkdir -p ~/.kube
+                    echo "${KUBE_CONFIG}" > ~/.kube/config
+                    chmod 600 ~/.kube/config
+                    kubectl config get-contexts || true
+
+            -   name: Apply Kubernetes manifests (staging)
+                run: |
+                    mkdir -p evidence
+                    set -o pipefail
+                    echo "=== Deploy Staging ===" | tee evidence/deploy-staging.log
+                    date -u | tee -a evidence/deploy-staging.log
+
+                    echo "--- kubectl apply k8s/namespace-staging.yml ---" | tee -a evidence/deploy-staging.log
+                    kubectl apply -f k8s/namespace-staging.yml 2>&1 | tee -a evidence/deploy-staging.log
+
+                    echo "--- kubectl apply k8s/configmap-staging.yml ---" | tee -a evidence/deploy-staging.log
+                    kubectl apply -f k8s/configmap-staging.yml 2>&1 | tee -a evidence/deploy-staging.log
+
+                    echo "--- kubectl apply k8s/deployment-staging.yml ---" | tee -a evidence/deploy-staging.log
+                    kubectl apply -f k8s/deployment-staging.yml 2>&1 | tee -a evidence/deploy-staging.log
+
+                    echo "--- kubectl apply k8s/service-staging.yml ---" | tee -a evidence/deploy-staging.log
+                    kubectl apply -f k8s/service-staging.yml 2>&1 | tee -a evidence/deploy-staging.log
+
+            -   name: Upload deployment evidence (staging)
+                if: always()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: deploy-staging-evidence
+                    path: evidence/deploy-staging.log
