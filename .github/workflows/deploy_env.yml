@@ -5,6 +5,7 @@ on:
         branches:
             - main
             - develop
+            - feature/sandro-deploy_env
     workflow_dispatch:
 
 jobs:
