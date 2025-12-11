@@ -8,8 +8,9 @@ metadata:
     environment: staging
 spec:
   ports:
-  - port: 80
+  - port: 8001
     targetPort: 8000
+    nodePort: 30001
     protocol: TCP
     name: http
   selector:
