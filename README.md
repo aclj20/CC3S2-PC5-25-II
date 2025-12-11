@@ -263,3 +263,148 @@ black --check .
 ruff check .
 pytest -vv
 ```
+
+---
+
+## Despliegue en Kubernetes
+
+Este proyecto incluye manifiestos completos de Kubernetes para orquestar la aplicación Feature Flag Hub en entornos dev y staging.
+
+### **Arquitectura Kubernetes**
+
+```
+Cluster Kubernetes
+├── featureflags-dev/
+│   ├── ConfigMap: featureflags-config-dev
+│   ├── Deployment: featureflags-api-dev (1 replica)
+│   ├── Service: featureflags-service-dev (NodePort 30000)
+│   └── Pod: contenedor corriendo imagen featureflags-api:dev
+│
+└── featureflags-staging/
+    ├── ConfigMap: featureflags-config-staging
+    ├── Deployment: featureflags-api-staging (1 replica)
+    ├── Service: featureflags-service-staging (NodePort 30001)
+    └── Pod: contenedor corriendo imagen featureflags-api:staging
+```
+
+### **Requisitos Previos**
+
+#### Iniciar Cluster de Kubernetes
+
+```bash
+minikube start
+
+kubectl cluster-info
+kubectl get nodes
+```
+
+### **Construir Imágenes Docker en Minikube**
+
+Minikube tiene su propio Docker daemon. Debes construir las imágenes **dentro de Minikube**:
+
+```bash
+eval $(minikube docker-env)
+
+docker build -t featureflags-api:dev -f Dockerfile .
+
+docker build -t featureflags-api:staging -f Dockerfile.staging .
+```
+
+**Nota:** Cada vez que abras una nueva terminal, debes ejecutar `eval $(minikube docker-env)` para usar el Docker daemon de Minikube.
+
+### **Aplicar Manifiestos de Kubernetes**
+
+```bash
+# Dev
+kubectl apply -f k8s/namespace-dev.yml \
+              -f k8s/configmap-dev.yml \
+              -f k8s/deployment-dev.yml \
+              -f k8s/service-dev.yml
+
+# Staging
+kubectl apply -f k8s/namespace-staging.yml \
+              -f k8s/configmap-staging.yml \
+              -f k8s/deployment-staging.yml \
+              -f k8s/service-staging.yml
+```
+
+### **Verificación del Despliegue**
+
+#### Ver Estado de Pods
+
+```bash
+kubectl get pods -n featureflags-dev
+
+kubectl get pods -n featureflags-staging
+```
+
+#### Ver Logs de los Pods
+
+```bash
+kubectl logs -f deployment/featureflags-api-dev -n featureflags-dev
+
+kubectl logs -f deployment/featureflags-api-staging -n featureflags-staging
+```
+
+
+### **Manifiestos de Kubernetes**
+
+#### Estructura del directorio `k8s/`
+
+```
+k8s/
+├── namespace-dev.yml          # Namespace para desarrollo
+├── namespace-staging.yml      # Namespace para staging
+├── configmap-dev.yml          # Variables de entorno (dev)
+├── configmap-staging.yml      # Variables de entorno (staging)
+├── deployment-dev.yml         # Orquestación de Pods (dev)
+├── deployment-staging.yml     # Orquestación de Pods (staging)
+├── service-dev.yml            # Exposición de red (dev)
+└── service-staging.yml        # Exposición de red (staging)
+```
+
+#### ConfigMaps (Variables de Entorno)
+
+Los ConfigMaps almacenan variables de configuración específicas por entorno:
+
+**Dev ([`k8s/configmap-dev.yml`](k8s/configmap-dev.yml)):**
+```yaml
+data:
+  ENVIRONMENT: "dev"
+  DEFAULT_FLAG_STRATEGY: "permissive"
+  LOG_LEVEL: "DEBUG"
+  API_PORT: "8000"
+  DATABASE_URL: "sqlite:///./data/featureflags_dev.db"
+```
+
+**Staging ([`k8s/configmap-staging.yml`](k8s/configmap-staging.yml)):**
+```yaml
+data:
+  ENVIRONMENT: "staging"
+  DEFAULT_FLAG_STRATEGY: "conservative"
+  LOG_LEVEL: "INFO"
+  API_PORT: "8001"
+  DATABASE_URL: "sqlite:///./data/featureflags_staging.db"
+```
+
+#### Deployments (Orquestación de Pods)
+
+Los Deployments definen cómo ejecutar la aplicación:
+
+**Características principales:**
+- **Replicas:** 1 por defecto (escalable con `kubectl scale`)
+- **Imagen:** `featureflags-api:dev` o `featureflags-api:staging`
+- **Variables:** Inyectadas desde ConfigMap usando `envFrom.configMapRef`
+- **Health Probes:**
+  - `readinessProbe`: Verifica si la app está lista para recibir tráfico (`/health`)
+  - `livenessProbe`: Verifica si la app sigue viva (reinicia si falla)
+- **Volúmenes:** `emptyDir` montado en `/app/data` para SQLite
+
+#### Services (Exposición de Red)
+
+Los Services exponen los Pods mediante NodePort:
+
+| Entorno | Service | Puerto Interno | NodePort |
+|---------|---------|----------------|----------|
+| Dev | `featureflags-service-dev` | 8000 | 30000 |
+| Staging | `featureflags-service-staging` | 8001 | 30001 |
