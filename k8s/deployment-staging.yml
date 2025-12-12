@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: featureflags-api-staging
+  namespace: featureflags-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: featureflags-api
+      tier: backend
+      stage: staging
+  template:
+    metadata:
+      labels:
+        app: featureflags-api
+        tier: backend
+        stage: staging
+    spec:
+      containers:
+        - name: featureflags-api
+          image: featureflags-api:staging
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: featureflags-config-staging
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+      volumes:
+        - name: data-volume
+          emptyDir: {}
